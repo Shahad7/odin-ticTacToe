@@ -2,14 +2,108 @@
     height:100vh;
     width:100vw;
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     align-items: center;
+
 }
-.board{
+
+html,body{
+    height: 100vh;
+    width:100vw;
+    overflow: hidden;
+    background-color: #1e293b;
+}
+
+.scoreBoard{   
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items:center;
+    height: 450px;
+    font-size: 45px;
+    color:#67e8f9;
+    width:320px;
+    left: 30px;
+    margin-bottom: 10%;
+
+}
+
+.initialization{
+    position: absolute;
+    color:white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items:center;
+    height: 450px;
+    width:320px;
+    left: 30px;
+    margin-bottom: 10%;
+    z-index:99;
+
+}
+
+#gameStart,#reset{
+    height: 50px;
+    font-size: larger;
+    background-color: #22d3ee;
+    width: 130px;
+    color:white;
+    border-radius: 20px;
+}
+#user1,#user2{
+    height:35px;
+    border-radius: 20px;
+    border-color: #67e8f9;
+    border-width: 3.5px;
+    font-size: large;
+    text-align: center;
+}
+
+#user1:focus,#user2:focus {
+    outline:none;
+    border-color: red;
+}
+
+::-webkit-input-placeholder {
+    text-align: center;
+  }
+  
+  :-moz-placeholder {
+    text-align: center;
+  }
+
+button{ 
+    position: absolute;
+    left:80%;
+    margin-bottom: 3%;
+}
+
+#canvas{
     height: 400px;
     width: 400px;
+    position:absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    margin:auto;
+
+}
+.board{
+    height: 405px;
+    width: 405px;
     display: grid;
     grid-template: 1fr 1fr 1fr/ 1fr 1fr 1fr;
+    position:absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    margin:auto;
+    background-color: black;
+    gap:5px;
 
 }
 
@@ -17,9 +111,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color:black;
+    background-color:#1e293b;
     font-size:140px;
-    height:133.33px;
-    width:133.33px;
-    border: 1px solid green;
+    height:133px;
+    width:133px;
 }
