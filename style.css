@@ -44,6 +44,21 @@ html,body{
 
 }
 
+.checkbox{
+    display: flex;
+    align-items: center;
+    width:200px;
+    font-size: large;
+    margin-left: 14px;;
+}
+
+#checkbox{
+    cursor: pointer;
+    margin-left:12px;
+    height: 18px;
+    width: 18px;
+}
+
 #gameStart,#reset{
     height: 50px;
     font-size: larger;

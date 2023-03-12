@@ -1,13 +1,4 @@
 
-let cell = document.querySelectorAll('.cell');
-let turn = 0;
-let gameStart = 0;
-const win =  new Audio("win.mp3");
-const cross =  new Audio("cross.mp3")
-const start =  new Audio("start.mp3")
-
-
-
 const gameBoard = (() => {
 
     let start,end;
@@ -138,7 +129,7 @@ const gameBoard = (() => {
         context.stroke()
         context.stroke()
         context.stroke()
-        cross.play();
+        displayController.cross.play();
     
         
     }
@@ -181,11 +172,11 @@ const game = (() => {
         name2 = input2.value;
         if(name1==""||name2=="")
             return;
-        start.play();
+        displayController.start.play();
         player1.name = name1;
         player2.name = name2;
         ROUND.textContent =  `Round : ${round}`;
-        gameStart = 1;
+        displayController.gameStart = 1;
         form.style.visibility = 'hidden';
         scoreBoard.style.visibility = 'visible';
         score1.textContent = `${name1} : 0`;
@@ -195,7 +186,7 @@ const game = (() => {
     }
 
     const restart = () =>{
-        start.play();
+        displayController.start.play();
         round = 5;
         gameStart = 0;
         ROUND.style.color = '#67e8f9';
@@ -212,18 +203,18 @@ const game = (() => {
         gameBoard.setStart(0);
         for(let i=0;i<=8;i++)
             gameBoard.updateBoard(i,"")
-        cell.forEach(element => {
+        displayController.cell.forEach(element => {
             element.textContent = "";});
     }
 
     const reset = () => {
-        turn = 0;
+        displayController.turn = 0;
         gameBoard.returnBoard().length = 0;
         gameBoard.setEnd(0);
         gameBoard.setStart(0);
         for(let i=0;i<=8;i++)
             gameBoard.updateBoard(i,"");
-        cell.forEach(element => {
+        displayController.cell.forEach(element => {
             element.textContent = "";
         setTimeout(()=>{
             canvas.style.zIndex = 0;
@@ -252,7 +243,7 @@ const game = (() => {
 
     const gameOver = () => {
         let winner,draw = 0;
-        gameStart = 0;
+        displayController.gameStart = 0;
         if(player1.score > player2.score)
             winner = player1
         else if(player2.score > player1.score)
@@ -266,7 +257,7 @@ const game = (() => {
         if(!draw)
         {
             ROUND.textContent = `${winner.name.toUpperCase()}  WON!`;
-            win.play();
+            displayController.win.play();
         }
         else{
             ROUND.textContent = 'DRAW';
@@ -278,25 +269,43 @@ const game = (() => {
 
 })();
 
+const player = (str) => {
+    let score = 0;
+    let name = "";
+    let symbol = str;
+    return {score,symbol};
+}
+
+let player1 = player('×');
+let player2 = player('○');
+
+const displayController = (() => {
+    const cell = document.querySelectorAll('.cell');
+    let turn = 0;
+    let gameStart = 0;
+    const win =  new Audio("win.mp3");
+    const cross =  new Audio("cross.mp3");
+    const start =  new Audio("start.mp3");
+
     cell.forEach(element => {
         element.addEventListener('click',()=>{
             let pos = element.getAttribute('id')[1];
             let symbol;
-            if((gameBoard.returnBoard()[pos]==""&&(game.getRound()!=0))&&(gameStart==1))
+            if((gameBoard.returnBoard()[pos]==""&&(game.getRound()!=0))&&(displayController.gameStart==1))
             {
-                if(turn == 0)
+                if(displayController.turn == 0)
                 {
                     element.textContent = player1.symbol;
                     symbol = player1.symbol;
                     gameBoard.updateBoard(pos,symbol);
-                    turn = !turn;
+                    displayController.turn = !displayController.turn;
                 }
-                else if(turn==1)
+                else if(displayController.turn==1)
                 {
                     element.textContent = player2.symbol;
                     symbol = player2.symbol;
                     gameBoard.updateBoard(pos,symbol);
-                    turn = !turn;
+                    displayController.turn = !displayController.turn;
                 }      
                 if(symbol=='×')
                 {
@@ -341,15 +350,9 @@ const startButton = document.querySelector('#gameStart')
 startButton.addEventListener('click',()=>{
     game.initialize();
 
+
 })
    
-const player = (str) => {
-    let score = 0;
-    let name = "";
-    let symbol = str;
-    return {score,symbol};
-}
+    return {turn,cross,win,start,gameStart,cell}
 
-let player1 = player('×');
-let player2 = player('○');
-
+})();
