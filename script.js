@@ -149,8 +149,18 @@ const gameBoard = (() => {
         else
             return 1;
     }
+    
+    const boardSize = () =>{
+        let size=0;
+        for(let i=0;i<9;i++)
+        {
+            if(gameBoard[i]!="")
+                size++;
+        }
+        return size;
+    }
 
-    return {checkBoard,updateBoard,returnBoard,strokeBoard,setStart,setEnd,checkDraw};
+    return {checkBoard,updateBoard,returnBoard,strokeBoard,setStart,setEnd,checkDraw,boardSize};
 
 })();
 
@@ -159,6 +169,18 @@ const game = (() => {
     let round = 5;
     let name1;
     let name2;
+    const choices = [
+        [0,1,2],
+        [3,4,5],
+        [6,7,8],
+        [0,3,6],
+        [1,4,7],
+        [2,5,8],
+        [0,4,8],
+        [2,4,6]
+    ]
+    let bpos;
+    let count = 0,pick,p1,p2;
     const scoreBoard = document.querySelector('.scoreBoard');
     const score1 = document.querySelector('#player1');
     const score2 = document.querySelector('#player2');
@@ -166,11 +188,171 @@ const game = (() => {
     const form = document.querySelector('.initialization');
     const input1 = document.querySelector('#user1');
     const input2 = document.querySelector('#user2');
+    const checkBot = document.querySelector('#checkbox');
+
+    checkBot.addEventListener('click',()=>{
+        if(checkBot.checked==true)
+        {
+            input2.value = "Bot";
+            input2.disabled = true;
+            displayController.botActive = 1;
+        }
+        else{
+            input2.value = "";
+            displayController.botActive = 0;
+            input2.disabled = false;
+        }
+    })
+
+    const checkP = (elt)=>{
+        return elt!=p1&&elt!=p2;
+    }
+
+    const makeWiseMove = ()=>{
+        if((displayController.pos==0||displayController.pos==2)&&
+        gameBoard.returnBoard()[4]=="")
+        {
+            if((Math.random()*100)<75)
+                return 4;
+        }
+        for(i in choices)
+        {
+            count = 0;
+            for(j in choices[i])
+            {                  
+                    if(gameBoard.returnBoard()[choices[i][j]]==player2.symbol)
+                    {
+                        count++;
+                        if(count==1)
+                            p1 = parseInt(choices[i][j]);
+                        else if(count==2)
+                            p2 = parseInt(choices[i][j]);                               
+                    }
+                
+            }
+            if(count==2)
+            {
+                bpos = choices[i].filter(checkP)
+                if(document.querySelector(`#c${bpos}`).textContent=="")
+                {   console.log(`bot picked ${bpos}`);
+                    return bpos;
+                }
+            }
+        }
+                
+    }
+
+    const makeNextMove = () => {
+        let flag = 0;
+        for(i in choices)
+        {
+            for(j in choices[i])
+            {         
+                if(gameBoard.returnBoard()[choices[i][j]]==player2.symbol)
+                {
+                         if(gameBoard.returnBoard()[choices[i][(j+1)%3]]==""&&
+                         gameBoard.returnBoard()[choices[i][(j+2)%3]]!=player1.symbol)
+                        {   flag=1;
+                            console.log(`bot picked ${choices[i][(j+1)%3]}`)
+                            return choices[i][(j+1)%3];
+                        }
+                        else if (gameBoard.returnBoard()[choices[i][(j+2)%3]]==""
+                        &&gameBoard.returnBoard()[choices[i][(j+1)%3]]!=player1.symbol)
+                        {   flag=1;
+                            console.log(`bot picked ${choices[i][(j+2)%3]}`)
+                            return choices[i][(j+2)%3];     
+                        }              
+                }           
+            }   
+        }
+        if(flag==0)
+        {
+            for(let i=0;i<9;i++)
+            {
+                if(gameBoard.returnBoard()[i]=="")
+                    return i;
+            }
+        }
+    
+    }
+
+    const makeMove = () => {
+    
+        const choose = ()=>{
+                for(i in choices)
+                {
+                    count = 0;
+                    for(j in choices[i])
+                    {
+                        if(choices[i].includes(parseInt(displayController.pos)))
+                        {
+                            if(gameBoard.returnBoard()[choices[i][j]]==player1.symbol)
+                            {
+                                count++;
+                                if(count==1)
+                                    p1 = parseInt(choices[i][j]);
+                                else if(count==2)
+                                    p2 = parseInt(choices[i][j]);                               
+                            }
+                        }
+                    }
+                    if(count==2)
+                    {
+                        bpos = choices[i].filter(checkP)
+                        if(document.querySelector(`#c${bpos}`).textContent=="")
+                        {   
+                            break;
+                        }
+                    }
+                }
+        }
+        if(displayController.turn == 1)
+        {
+            bpos = makeWiseMove()
+            if(bpos == undefined)
+            {
+                if((Math.random()*100)<65)
+                    choose();
+                else
+                    bpos = makeNextMove();
+                if(bpos == undefined)
+                {
+                    bpos = makeNextMove();
+                }
+                else if(document.querySelector(`#c${bpos}`).textContent != "")
+                {
+                    bpos = makeNextMove();
+
+                }
+            }
+            
+            document.querySelector(`#c${bpos}`).textContent = '○';
+            document.querySelector(`#c${bpos}`).style.color = 'white';
+            gameBoard.updateBoard(bpos,'○');
+            displayController.turn = !displayController.turn;
+            if(gameBoard.checkBoard('○')==1)
+            {
+                    gameBoard.strokeBoard('white');
+                    updateScore(player2);
+                    updateRound();
+                    if(getRound()==0)
+                        gameOver();
+
+            }
+            if(gameBoard.checkDraw()==1)
+            {
+                reset()
+                updateRound();
+                if(getRound()==0)
+                    gameOver();
+            }
+        }
+    }
 
     const initialize = () => {
         name1 = input1.value;
         name2 = input2.value;
-        if(name1==""||name2=="")
+        if(name1==""||name2==""&&checkBot.checked==false)
             return;
         displayController.start.play();
         player1.name = name1;
@@ -187,8 +369,10 @@ const game = (() => {
 
     const restart = () =>{
         displayController.start.play();
+        input2.disabled = false;
+        checkBot.checked = false;
         round = 5;
-        gameStart = 0;
+        displayController.gameStart = 0;
         ROUND.style.color = '#67e8f9';
         scoreBoard.style.visibility = 'hidden';
         form.style.visibility = 'visible';
@@ -265,7 +449,7 @@ const game = (() => {
         ROUND.style.color = 'white';
     }    
 
-    return {gameOver,updateRound,updateScore,getRound,restart,reset,initialize};
+    return {gameOver,updateRound,updateScore,getRound,restart,reset,initialize,makeMove};
 
 })();
 
@@ -283,29 +467,36 @@ const displayController = (() => {
     const cell = document.querySelectorAll('.cell');
     let turn = 0;
     let gameStart = 0;
+    let botActive = 0;
+    let pos;
     const win =  new Audio("win.mp3");
     const cross =  new Audio("cross.mp3");
     const start =  new Audio("start.mp3");
 
     cell.forEach(element => {
         element.addEventListener('click',()=>{
-            let pos = element.getAttribute('id')[1];
+            displayController.pos = element.getAttribute('id')[1];
             let symbol;
-            if((gameBoard.returnBoard()[pos]==""&&(game.getRound()!=0))&&(displayController.gameStart==1))
+            if((gameBoard.returnBoard()[displayController.pos]==""&&(game.getRound()!=0))
+            &&(displayController.gameStart==1))
             {
                 if(displayController.turn == 0)
                 {
                     element.textContent = player1.symbol;
                     symbol = player1.symbol;
-                    gameBoard.updateBoard(pos,symbol);
+                    gameBoard.updateBoard(displayController.pos,symbol);
                     displayController.turn = !displayController.turn;
+                    
                 }
                 else if(displayController.turn==1)
                 {
-                    element.textContent = player2.symbol;
-                    symbol = player2.symbol;
-                    gameBoard.updateBoard(pos,symbol);
-                    displayController.turn = !displayController.turn;
+                    if(displayController.botActive==0)
+                    {
+                        element.textContent = player2.symbol;
+                        symbol = player2.symbol;
+                        gameBoard.updateBoard(displayController.pos,symbol);
+                        displayController.turn = !displayController.turn;
+                    }
                 }      
                 if(symbol=='×')
                 {
@@ -322,7 +513,6 @@ const displayController = (() => {
                 if(gameBoard.checkBoard(symbol)==1)
                 {
                     gameBoard.strokeBoard(element.style.color);
-                    console.log("somebody won");
                     game.updateScore(player0);
                     game.updateRound();
                     if(game.getRound()==0)
@@ -336,7 +526,10 @@ const displayController = (() => {
                     if(game.getRound()==0)
                         game.gameOver();
                 }
-
+                if(displayController.botActive==1&&gameBoard.boardSize()!=9)
+                {
+                        game.makeMove();
+                }
 
             }
         })
@@ -350,9 +543,8 @@ const startButton = document.querySelector('#gameStart')
 startButton.addEventListener('click',()=>{
     game.initialize();
 
-
 })
    
-    return {turn,cross,win,start,gameStart,cell}
+    return {turn,cross,win,start,gameStart,cell,botActive,pos}
 
 })();
