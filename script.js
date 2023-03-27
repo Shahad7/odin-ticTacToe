@@ -5,16 +5,16 @@ const gameBoard = (() => {
     const gameBoard = [];
     for(let i=0;i<9;i++)
         gameBoard[i] = "";
-    let checkBoard = function(symbol) {
+    let checkBoard = function(symbol,cboard) {
         let count=0;
         for(let i=0;i<7;i+=3)
         {
-            if(gameBoard[i]==symbol)
+            if(cboard[i]==symbol)
             {
                 count=0
                 for(let j=i+1;j<i+3;j++)
                 {
-                    if(gameBoard[j]==gameBoard[i])
+                    if(cboard[j]==cboard[i])
                         count++;
                         if(count==2)
                         {
@@ -29,13 +29,13 @@ const gameBoard = (() => {
         count = 0;
         for(let i=0;i<3;i++)
         {
-            if(gameBoard[i]==symbol)            
+            if(cboard[i]==symbol)            
             {
                 count=0
                 for(let j=i+3;j<9;j+=3)
                 {
                     
-                    if(gameBoard[j]==gameBoard[i])
+                    if(cboard[j]==cboard[i])
                         count++;
                         if(count==2)
                         {
@@ -47,13 +47,13 @@ const gameBoard = (() => {
             }
         }  
     
-        if(gameBoard[0]!=""&&gameBoard[0]==gameBoard[4]&&gameBoard[4]==gameBoard[8])
+        if(cboard[0]!=""&&cboard[0]==cboard[4]&&cboard[4]==cboard[8])
         {
             start = 0
             end = 8
             return 1;
         }
-        if(gameBoard[2]!=""&&gameBoard[2]==gameBoard[4]&&gameBoard[4]==gameBoard[6])
+        if(cboard[2]!=""&&cboard[2]==cboard[4]&&cboard[4]==cboard[6])
         {
             start = 2
             end = 6
@@ -137,11 +137,11 @@ const gameBoard = (() => {
     const getStart = () => start;
     const getEnd = () => end;
 
-    const checkDraw = () =>{
+    const checkDraw = (dboard) =>{
         let flag = 0;
         for(let i = 0;i<9;i++)
         {
-            if(gameBoard[i] == "")
+            if(dboard[i] == "")
                 flag = 1;
         }
         if(flag==1)
@@ -160,7 +160,8 @@ const gameBoard = (() => {
         return size;
     }
 
-    return {checkBoard,updateBoard,returnBoard,strokeBoard,setStart,setEnd,checkDraw,boardSize};
+    return {checkBoard,updateBoard,returnBoard,strokeBoard,
+        setStart,setEnd,checkDraw,boardSize};
 
 })();
 
@@ -204,133 +205,82 @@ const game = (() => {
         }
     })
 
-    const checkP = (elt)=>{
-        return elt!=p1&&elt!=p2;
+    function randomHumanMove(board){
+        for(let i=0;i<9;i++){
+            if(board[i]=="")
+            {
+                board[i]=player1.symbol;
+                return i;
+            }
+        }
+    }
+    function randomBotMove(board){
+        for(let i=0;i<9;i++){
+            if(board[i]=="")
+            {
+                board[i]=player2.symbol;
+                return i;
+
+            }
+        }
     }
 
-    const makeWiseMove = ()=>{
-        if((displayController.pos==0||displayController.pos==2)&&
-        gameBoard.returnBoard()[4]=="")
-        {
-            if((Math.random()*100)<75)
-                return 4;
-        }
-        for(i in choices)
-        {
-            count = 0;
-            for(j in choices[i])
-            {                  
-                    if(gameBoard.returnBoard()[choices[i][j]]==player2.symbol)
-                    {
-                        count++;
-                        if(count==1)
-                            p1 = parseInt(choices[i][j]);
-                        else if(count==2)
-                            p2 = parseInt(choices[i][j]);                               
-                    }
-                
-            }
-            if(count==2)
+    const makeMove = (board) => {
+        let decision = [0,0,[]];
+        for(let i=0;i<9;i++){
+            iboard = board;
+
+            if(iboard[i]=="")
             {
-                bpos = choices[i].filter(checkP)
-                if(document.querySelector(`#c${bpos}`).textContent=="")
-                {   console.log(`bot picked ${bpos}`);
-                    return bpos;
+                iboard[i] = player2.symbol;
+                if(gameBoard.checkBoard(player2.symbol,iboard)==1)
+                {
+                    decision = [1,i,iboard];
+                    return decision;
                 }
-            }
-        }
-                
-    }
-
-    const makeNextMove = () => {
-        let flag = 0;
-        for(i in choices)
-        {
-            for(j in choices[i])
-            {         
-                if(gameBoard.returnBoard()[choices[i][j]]==player2.symbol)
-                {
-                         if(gameBoard.returnBoard()[choices[i][(j+1)%3]]==""&&
-                         gameBoard.returnBoard()[choices[i][(j+2)%3]]!=player1.symbol)
-                        {   flag=1;
-                            console.log(`bot picked ${choices[i][(j+1)%3]}`)
-                            return choices[i][(j+1)%3];
-                        }
-                        else if (gameBoard.returnBoard()[choices[i][(j+2)%3]]==""
-                        &&gameBoard.returnBoard()[choices[i][(j+1)%3]]!=player1.symbol)
-                        {   flag=1;
-                            console.log(`bot picked ${choices[i][(j+2)%3]}`)
-                            return choices[i][(j+2)%3];     
-                        }              
-                }           
-            }   
-        }
-        if(flag==0)
-        {
-            for(let i=0;i<9;i++)
-            {
-                if(gameBoard.returnBoard()[i]=="")
-                    return i;
-            }
-        }
-    
-    }
-
-    const makeMove = () => {
-    
-        const choose = ()=>{
-                for(i in choices)
-                {
-                    count = 0;
-                    for(j in choices[i])
-                    {
-                        if(choices[i].includes(parseInt(displayController.pos)))
+                else if(gameBoard.checkDraw(iboard)==1){
+                    decision = [0,i,iboard]; 
+                    return decision;    
+                }
+                else{
+                    for(let j=0;j<9;j++){
+                        jboard = iboard;
+                        if(jboard[j]=="")
                         {
-                            if(gameBoard.returnBoard()[choices[i][j]]==player1.symbol)
+                            jboard[j] = player1.symbol;
+                            if(gameBoard.checkBoard(player1.symbol,jboard)==1)
                             {
-                                count++;
-                                if(count==1)
-                                    p1 = parseInt(choices[i][j]);
-                                else if(count==2)
-                                    p2 = parseInt(choices[i][j]);                               
+                                decision = [-1,j,jboard];
+                                return decision;
                             }
+                            else if(gameBoard.checkDraw(jboard)==1){
+                                decision = [0,j,jboard];     
+                                return decision;
+                            }
+                            else{
+                                x = game.makeMove(jboard);
+                                if(x[0]>decision[0])
+                                {
+                                    decision = x;
+                                    return decision;
+                                }
                         }
                     }
-                    if(count==2)
-                    {
-                        bpos = choices[i].filter(checkP)
-                        if(document.querySelector(`#c${bpos}`).textContent=="")
-                        {   
-                            break;
-                        }
-                    }
-                }
-        }
-        if(displayController.turn == 1)
-        {
-            bpos = makeWiseMove()
-            if(bpos == undefined)
-            {
-                if((Math.random()*100)<65)
-                    choose();
-                else
-                    bpos = makeNextMove();
-                if(bpos == undefined)
-                {
-                    bpos = makeNextMove();
-                }
-                else if(document.querySelector(`#c${bpos}`).textContent != "")
-                {
-                    bpos = makeNextMove();
-
                 }
             }
+        }      
+    }
+    console.log(decision[1])
+    return decision;
+}
+
+    const reflectBotMove = (bposition) => {
             
-            document.querySelector(`#c${bpos}`).textContent = '○';
-            document.querySelector(`#c${bpos}`).style.color = 'white';
-            gameBoard.updateBoard(bpos,'○');
+            document.querySelector(`#c${bposition}`).textContent = '○';
+            document.querySelector(`#c${bposition}`).style.color = 'white';
+            gameBoard.updateBoard(bposition,'○');
             displayController.turn = !displayController.turn;
-            if(gameBoard.checkBoard('○')==1)
+            if(gameBoard.checkBoard(player2.symbol,gameBoard.returnBoard())==1)
             {
                     gameBoard.strokeBoard('white');
                     updateScore(player2);
@@ -339,7 +289,7 @@ const game = (() => {
                         gameOver();
 
             }
-            if(gameBoard.checkDraw()==1)
+            if(gameBoard.checkDraw(gameBoard.returnBoard())==1)
             {
                 reset()
                 updateRound();
@@ -347,7 +297,7 @@ const game = (() => {
                     gameOver();
             }
         }
-    }
+    
 
     const initialize = () => {
         name1 = input1.value;
@@ -449,7 +399,8 @@ const game = (() => {
         ROUND.style.color = 'white';
     }    
 
-    return {gameOver,updateRound,updateScore,getRound,restart,reset,initialize,makeMove};
+    return {gameOver,updateRound,updateScore,getRound,restart,reset,
+           initialize,makeMove,reflectBotMove};
 
 })();
 
@@ -510,7 +461,7 @@ const displayController = (() => {
                     player0 = player2;
                 }
                 
-                if(gameBoard.checkBoard(symbol)==1)
+                if(gameBoard.checkBoard(symbol,gameBoard.returnBoard())==1)
                 {
                     gameBoard.strokeBoard(element.style.color);
                     game.updateScore(player0);
@@ -519,7 +470,7 @@ const displayController = (() => {
                         game.gameOver();
 
                 }
-                if(gameBoard.checkDraw()==1)
+                if(gameBoard.checkDraw(gameBoard.returnBoard())==1)
                 {
                     game.reset()
                     game.updateRound();
@@ -528,7 +479,8 @@ const displayController = (() => {
                 }
                 if(displayController.botActive==1&&gameBoard.boardSize()!=9)
                 {
-                        game.makeMove();
+                        move = game.makeMove(gameBoard.returnBoard())[1];
+                        game.reflectBotMove(move);
                 }
 
             }
