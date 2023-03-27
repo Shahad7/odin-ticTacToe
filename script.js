@@ -228,7 +228,7 @@ const game = (() => {
     const makeMove = (board) => {
         let decision = [0,0,[]];
         for(let i=0;i<9;i++){
-            iboard = board;
+            iboard = board.slice();
 
             if(iboard[i]=="")
             {
@@ -244,7 +244,7 @@ const game = (() => {
                 }
                 else{
                     for(let j=0;j<9;j++){
-                        jboard = iboard;
+                        jboard = iboard.slice();
                         if(jboard[j]=="")
                         {
                             jboard[j] = player1.symbol;
@@ -270,7 +270,6 @@ const game = (() => {
             }
         }      
     }
-    console.log(decision[1])
     return decision;
 }
 
@@ -361,6 +360,7 @@ const game = (() => {
 
     const updateRound = () => {
         ROUND.textContent = `Round : ${--round}`;
+        console.log(gameBoard.returnBoard())
         reset()
     }
 
