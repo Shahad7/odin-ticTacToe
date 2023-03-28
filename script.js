@@ -205,26 +205,6 @@ const game = (() => {
         }
     })
 
-    function randomHumanMove(board){
-        for(let i=0;i<9;i++){
-            if(board[i]=="")
-            {
-                board[i]=player1.symbol;
-                return i;
-            }
-        }
-    }
-    function randomBotMove(board){
-        for(let i=0;i<9;i++){
-            if(board[i]=="")
-            {
-                board[i]=player2.symbol;
-                return i;
-
-            }
-        }
-    }
-
     const makeMove = (board) => {
         let decision = [0,0,[]];
         for(let i=0;i<9;i++){
@@ -283,6 +263,7 @@ const game = (() => {
             {
                     gameBoard.strokeBoard('white');
                     updateScore(player2);
+                    reset()
                     updateRound();
                     if(getRound()==0)
                         gameOver();
@@ -348,20 +329,20 @@ const game = (() => {
         for(let i=0;i<=8;i++)
             gameBoard.updateBoard(i,"");
         displayController.cell.forEach(element => {
-            element.textContent = "";
+            element.textContent = ""; 
+        });
         setTimeout(()=>{
             canvas.style.zIndex = 0;
-        },300)
+        },300);
         
-        })
+       
     }
     
     const getRound = () => round;
 
     const updateRound = () => {
         ROUND.textContent = `Round : ${--round}`;
-        console.log(gameBoard.returnBoard())
-        reset()
+        
     }
 
     const updateScore = (player) =>{
@@ -465,6 +446,7 @@ const displayController = (() => {
                 {
                     gameBoard.strokeBoard(element.style.color);
                     game.updateScore(player0);
+                    game.reset();
                     game.updateRound();
                     if(game.getRound()==0)
                         game.gameOver();
@@ -477,7 +459,8 @@ const displayController = (() => {
                     if(game.getRound()==0)
                         game.gameOver();
                 }
-                if(displayController.botActive==1&&gameBoard.boardSize()!=9)
+                if(displayController.botActive==1&&
+                    displayController.turn==1&&gameBoard.boardSize()!=9)
                 {
                         move = game.makeMove(gameBoard.returnBoard())[1];
                         game.reflectBotMove(move);
